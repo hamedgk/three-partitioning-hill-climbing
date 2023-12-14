@@ -43,7 +43,6 @@ func (rn *Runner) Run() {
 		}
 	}
 	fmt.Printf("%#v", rn.BestSequence)
-	fmt.Printf("%#v", rn.PerfectData.Values)
 }
 
 func CalculatePerfect(data *HeritageData) PerfectHeritageData {
