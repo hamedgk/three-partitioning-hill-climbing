@@ -20,65 +20,32 @@ type State struct {
 func (seq *State) ChooseNeighbor() *State {
 	neighbors := seq.MeetNeighbors()
 	min := &State{OverallValue: MaxInt}
-	for i := 0; i < NeighborMeetCount; i++ {
-		if neighbors[i].OverallValue < min.OverallValue {
-			min = neighbors[i]
+	for index := range neighbors {
+		if neighbors[index].OverallValue < min.OverallValue {
+			min = neighbors[index]
 		}
 	}
 	return min
 }
 
-func (seq *State) CreateOneNeighbor() *State {
-	copySeq := *seq
-	minmax := copySeq.MinMax()
-	minIdx := minmax[0]
-	maxIdx := minmax[1]
-	randomExchange := rand.Intn(copySeq.StateDetails.PartCounts[maxIdx])
-
-	var maxIdxCounter int
-	var toBeExchangedIdx int
-	for i := 0; i < HeritageDataCount; i++ {
-		if copySeq.Division[i] == maxIdx {
-			maxIdxCounter++
-			if maxIdxCounter == randomExchange {
-				toBeExchangedIdx = i
-				break
-			}
-		}
-	}
-
-	copySeq.StateDetails.PartCounts[maxIdx]--
-	copySeq.StateDetails.PartCounts[minIdx]++
-	copySeq.Division[toBeExchangedIdx] = minIdx
-
-	toBeExchanged := (*copySeq.Data)[toBeExchangedIdx]
-	copySeq.StateDetails.IndividualValues[minIdx] += toBeExchanged
-	copySeq.StateDetails.IndividualValues[maxIdx] -= toBeExchanged
-
-	copySeq.OverallValue = 0
-	for i := 0; i < 3; i++ {
-		copySeq.OverallValue += Abs(copySeq.StateDetails.IndividualValues[i] - copySeq.PerfectData.Values[i])
-	}
-
-	return &copySeq
-}
-
 func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 	var seq = State{}
 	for i := 0; i < HeritageDataCount; i++ {
-		randomSibling := rand.Intn(3)
-		seq.Division[i] = randomSibling
+		randomSibling := rand.Intn(100)
 
-		switch randomSibling {
-		case 0:
+		switch {
+		case randomSibling >= 0 && randomSibling < 41:
 			seq.StateDetails.PartCounts[0]++
 			seq.StateDetails.IndividualValues[0] += (*data)[i]
-		case 1:
+			seq.Division[i] = 0
+		case randomSibling > 40 && randomSibling < 81:
 			seq.StateDetails.PartCounts[1]++
 			seq.StateDetails.IndividualValues[1] += (*data)[i]
-		case 2:
+			seq.Division[i] = 1
+		case randomSibling > 80:
 			seq.StateDetails.PartCounts[2]++
 			seq.StateDetails.IndividualValues[2] += (*data)[i]
+			seq.Division[i] = 2
 		default:
 			panic("invalid random number...")
 		}
@@ -95,10 +62,15 @@ func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 	return &seq
 }
 
-func (seq *State) MeetNeighbors() [NeighborMeetCount]*State {
-	neighbors := [NeighborMeetCount]*State{}
-	for i := 0; i < NeighborMeetCount; i++ {
-		neighbors[i] = seq.CreateOneNeighbor()
+func (seq *State) MeetNeighbors() []*State {
+	minIdx, maxIdx := seq.MinMax()
+	minGroundIdx := seq.minGroundIdxOfSibling(minIdx)
+	neighbors := make([]*State, seq.StateDetails.PartCounts[maxIdx])
+	for i, j := 0, 0; i < HeritageDataCount; i++ {
+		if seq.Division[i] == maxIdx {
+			neighbors[j] = seq.CreateOneNeighbor(minGroundIdx, i, minIdx, maxIdx)
+			j++
+		}
 	}
 	return neighbors
 }
@@ -107,10 +79,10 @@ func (seq *State) Value() int {
 	return seq.OverallValue
 }
 
-func (seq *State) MinMax() [2]int {
+func (seq *State) MinMax() (int, int) {
 	max := MinInt
 	min := MaxInt
-	minIdx, maxIdx := 0, 0
+	var minIdx, maxIdx int
 
 	for i := 0; i < 3; i++ {
 		value := seq.StateDetails.IndividualValues[i]
@@ -125,5 +97,35 @@ func (seq *State) MinMax() [2]int {
 		}
 	}
 
-	return [2]int{minIdx, maxIdx}
+	return minIdx, maxIdx
+}
+
+func (seq *State) CreateOneNeighbor(taker, giver, minIdx, maxIdx int) *State {
+	copySeq := *seq
+
+	takerData := copySeq.Data[taker]
+	giverData := copySeq.Data[giver]
+
+	copySeq.Division[taker], copySeq.Division[giver] = maxIdx, minIdx
+	copySeq.StateDetails.IndividualValues[minIdx] += -1*takerData + giverData
+	copySeq.StateDetails.IndividualValues[maxIdx] += -1*giverData + takerData
+
+	copySeq.OverallValue = 0
+	for i := 0; i < 3; i++ {
+		copySeq.OverallValue += Abs(copySeq.StateDetails.IndividualValues[i] - copySeq.PerfectData.Values[i])
+	}
+
+	return &copySeq
+}
+
+func (seq *State) minGroundIdxOfSibling(sibling int) int {
+	minGroundSize := MaxInt
+	minGroundIdx := 0
+	for i := 0; i < HeritageDataCount; i++ {
+		if seq.Division[i] == sibling && seq.Data[i] < minGroundSize {
+			minGroundSize = seq.Data[i]
+			minGroundIdx = i
+		}
+	}
+	return minGroundIdx
 }
