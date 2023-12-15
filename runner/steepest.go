@@ -64,9 +64,10 @@ func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 
 func (seq *State) MeetNeighbors() []*State {
 	minIdx, maxIdx := seq.MinMax()
-	minGroundIdx := seq.minGroundIdxOfSibling(minIdx)
+	var minGroundIdx int
 	neighbors := make([]*State, seq.StateDetails.PartCounts[maxIdx])
 	for i, j := 0, 0; i < HeritageDataCount; i++ {
+		minGroundIdx = seq.randomGroundIdxOfSibling(minIdx)
 		if seq.Division[i] == maxIdx {
 			neighbors[j] = seq.CreateOneNeighbor(minGroundIdx, i, minIdx, maxIdx)
 			j++
@@ -118,14 +119,16 @@ func (seq *State) CreateOneNeighbor(taker, giver, minIdx, maxIdx int) *State {
 	return &copySeq
 }
 
-func (seq *State) minGroundIdxOfSibling(sibling int) int {
-	minGroundSize := MaxInt
-	minGroundIdx := 0
-	for i := 0; i < HeritageDataCount; i++ {
-		if seq.Division[i] == sibling && seq.Data[i] < minGroundSize {
-			minGroundSize = seq.Data[i]
-			minGroundIdx = i
+func (seq *State) randomGroundIdxOfSibling(sibling int) int {
+	randomGroundNumber := rand.Intn(seq.StateDetails.PartCounts[sibling])
+
+	for i,j := 0,0; i<HeritageDataCount; i++{
+		if seq.Division[i] == sibling{
+			if randomGroundNumber == j{
+				return i
+			}
+			j++
 		}
 	}
-	return minGroundIdx
+	return -1
 }
