@@ -64,12 +64,27 @@ func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 
 func (seq *State) MeetNeighbors() []*State {
 	minIdx, maxIdx := seq.MinMax()
-	minGroundIdx := seq.minGroundIdxOfSibling(minIdx)
-	neighbors := make([]*State, seq.StateDetails.PartCounts[maxIdx])
-	for i, j := 0, 0; i < HeritageDataCount; i++ {
-		if seq.Division[i] == maxIdx {
-			neighbors[j] = seq.CreateOneNeighbor(minGroundIdx, i, minIdx, maxIdx)
+	maxDivision := make([]int, seq.StateDetails.PartCounts[maxIdx])
+	minDivision := make([]int, seq.StateDetails.PartCounts[minIdx])
+	maxCount := seq.StateDetails.PartCounts[maxIdx]
+	minCount := seq.StateDetails.PartCounts[minIdx]
+	for i,j,k:=0,0,0; i<HeritageDataCount; i++{
+		switch seq.Division[i]{
+		case maxIdx:
+			maxDivision[j] = i
 			j++
+		case minIdx:
+			minDivision[k] = i
+			k++
+		}
+	}
+	neighbors := make([]*State, maxCount * minCount)
+
+	var neighborIdx int
+	for i:=0; i<maxCount; i++{
+		for j:=0; j<minCount; j++{
+			neighbors[neighborIdx] = seq.CreateOneNeighbor(minDivision[j], maxDivision[i], minIdx, maxIdx)
+			neighborIdx++
 		}
 	}
 	return neighbors
@@ -116,16 +131,4 @@ func (seq *State) CreateOneNeighbor(taker, giver, minIdx, maxIdx int) *State {
 	}
 
 	return &copySeq
-}
-
-func (seq *State) minGroundIdxOfSibling(sibling int) int {
-	minGroundSize := MaxInt
-	minGroundIdx := 0
-	for i := 0; i < HeritageDataCount; i++ {
-		if seq.Division[i] == sibling && seq.Data[i] < minGroundSize {
-			minGroundSize = seq.Data[i]
-			minGroundIdx = i
-		}
-	}
-	return minGroundIdx
 }
