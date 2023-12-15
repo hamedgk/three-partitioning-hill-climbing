@@ -31,7 +31,6 @@ func (seq *State) ChooseNeighbor() *State {
 func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 	var seq = State{}
 	for i := 0; i < HeritageDataCount; i++ {
-		//randomSibling := rand.Intn(5)
 		randomSibling := rand.Intn(100)
 
 		switch {
