@@ -25,7 +25,7 @@ func main() {
 	ss := runner.InitialState(&data, &perfect)
 
 	r := runner.Runner{
-		IterationCount:  10000,
+		IterationCount:  70000,
 		Data:            &data,
 		PerfectData:     &perfect,
 		CurrentSequence: ss,
