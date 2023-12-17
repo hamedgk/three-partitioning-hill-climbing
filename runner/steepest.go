@@ -18,7 +18,7 @@ type State struct {
 }
 
 func (seq *State) ChooseNeighbor() *State {
-	neighbors := seq.MeetNeighbors()
+	neighbors := seq.CreateMultipleNeighbors()
 	min := &State{OverallValue: MaxInt}
 	for index := range neighbors {
 		if neighbors[index].OverallValue < min.OverallValue {
@@ -62,7 +62,7 @@ func InitialState(data *HeritageData, perfect *PerfectHeritageData) *State {
 	return &seq
 }
 
-func (seq *State) MeetNeighbors() []*State {
+func (seq *State) CreateMultipleNeighbors() []*State {
 	minIdx, maxIdx := seq.MinMax()
 	maxDivision := make([]int, seq.StateDetails.PartCounts[maxIdx])
 	minDivision := make([]int, seq.StateDetails.PartCounts[minIdx])
