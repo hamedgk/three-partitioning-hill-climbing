@@ -9,8 +9,4 @@ const (
 	MinUint = 0
 	MaxInt  = int(MaxUint >> 1)
 	MinInt  = -MaxInt - 1
-	
-	Stochastic = iota
-	Steepest
-	Lazy
 )
