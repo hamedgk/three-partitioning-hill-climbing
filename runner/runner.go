@@ -18,10 +18,7 @@ type Runner struct {
 }
 
 func (rn *Runner) Run() {
-	var stepInShoulder = 0
-
 	for i := 0; i < rn.IterationCount; i++ {
-		stepInShoulder = 0
 		rn.CurrentSequence = InitialState(rn.Data, rn.PerfectData)
 		for {
 			bestNeighbor := rn.CurrentSequence.ChooseNeighbor()
@@ -31,13 +28,7 @@ func (rn *Runner) Run() {
 					rn.BestSequence = bestNeighbor
 					fmt.Println(rn.BestSequence.OverallValue)
 				}
-			} else if bestNeighbor.Value() == rn.CurrentSequence.Value() {
-				stepInShoulder++
-				rn.CurrentSequence = bestNeighbor
-				if stepInShoulder == 10 {
-					break
-				}
-			} else {
+			}else {
 				break
 			}
 		}
